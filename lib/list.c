@@ -23,7 +23,6 @@ list* list_construct() {
 	return l;
 }
 
-
 void list_destruct(list *l) {
 	if (l) {
 		list_destruct_recursive(l->head);
