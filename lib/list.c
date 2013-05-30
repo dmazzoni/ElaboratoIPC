@@ -1,5 +1,6 @@
 #include <stdlib.h>
-#include "inc/list.h"
+#include <string.h>
+#include "list.h"
 
 typedef struct list_node {
 	char *data;
@@ -17,10 +18,12 @@ static void list_destruct_recursive(list_node *n);
 
 list* list_construct() {
 	list *l = (list *) malloc(sizeof(list));
-	l->head = NULL;
-	l->tail = NULL;
-	l->elements = 0;
-	return l;
+	if(l) {
+		l->head = NULL;
+		l->tail = NULL;
+		l->elements = 0;
+	}
+	return l; 
 }
 
 void list_destruct(list *l) {
@@ -60,8 +63,11 @@ int list_count(const list *const l) {
 }
 
 static list_node* node_construct(char *const s) {
+	int size = strlen(s) + 1;
+	char *dest = (char *) malloc(size * sizeof(char));
+	strcpy(dest, s);
 	list_node *node = (list_node *) malloc(sizeof(list_node));
-	node->data = s;
+	node->data = dest;
 	node->next = NULL;
 	return node;
 }
