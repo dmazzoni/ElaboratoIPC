@@ -4,5 +4,6 @@
 #include "list.h"
 
 list* parse_file(int fd);
+void write_err(const char *const message);
 
 #endif
