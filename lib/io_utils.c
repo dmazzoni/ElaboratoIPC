@@ -15,7 +15,7 @@ list* parse_file(const char *const pathname) {
 	char line[MAX_LENGTH];
 	int len, fd;
 	
-	if(!result) 
+	if(result == NULL) 
 		exit(1);
 
 	fd = open(pathname, O_RDONLY);
