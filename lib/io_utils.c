@@ -10,13 +10,19 @@
 static int read_line(int fd, char *const dest);
 static char read_char(int fd);
 
-list* parse_file(int fd) {
+list* parse_file(const char *const pathname) {
 	list *result = list_construct();
 	char line[MAX_LENGTH];
-	int len;
+	int len, fd;
 	
-	if(!result)
-		return NULL;
+	if(!result) 
+		exit(1);
+
+	fd = open(pathname, O_RDONLY);
+	if(fd == -1) {
+		perror("Failed to open setup file");
+		exit(1);
+	}
 		
 	do {
 		len = read_line(fd, line);
@@ -24,6 +30,11 @@ list* parse_file(int fd) {
 			list_append(result, line);
 	} while(len >= 0);
 	
+	if (close(fd) == -1) {
+		perror("Failed to close setup file");
+		exit(1);
+	}
+
 	return result;
 }
 

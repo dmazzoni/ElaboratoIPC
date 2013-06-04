@@ -6,10 +6,8 @@
 #include "lib/list.h"
 #include "lib/operation.h"
 
-static list* commands_setup(char *const pathname);
-
 int main(int argc, char *argv[]) {
-	int semkey, shmkey1, shmkey2, semid, shmid1, shmid2;
+	int ipc_id[] = {-1, -1, -1};
 	int processors;
 	list *commands;
 	
@@ -18,18 +16,16 @@ int main(int argc, char *argv[]) {
 		exit(1);
 	}
 	
-	commands = commands_setup(argv[1]);
+	commands = parse_file(argv[1]);
 		
 	processors = atoi(list_extract(commands));
 	if (processors == 0) {
 		write_err("Invalid number of processors\n");
 		exit(1);
 	}
-		
-	semkey = generate_key(1);
-	shmkey1 = generate_key(2);
-	shmkey2 = generate_key(3);
 	
+	init_ipc(ipc_id, (2 * processors) + 1, processors * sizeof(operation), (processors + 1) * sizeof(int), 0666 | IPC_CREAT | IPC_EXCL);	
+		
 	/*
 	k operazioni su n figli
 	- 2n + 1 semafori per interazione sulle operazioni
@@ -39,27 +35,4 @@ int main(int argc, char *argv[]) {
 	Locali al padre:
 	- Vettore con spazio per k risultati
 	*/
-}
-
-static list* commands_setup(char *const pathname) {
-	int fd;
-	list* result;
-	
-	fd = open(pathname, O_RDONLY);
-	if(fd == -1) {
-		perror("Failed to open setup file");
-		exit(1);
-	}
-
-	result = parse_file(fd);
-	if (result == NULL) {
-		write_err("Failed to create command list\n");
-		exit(1);
-	}
-	
-	if (close(fd) == -1) {
-		perror("Failed to close setup file");
-		exit(1);
-	}
-	return result;
 }

@@ -3,7 +3,7 @@
 
 #include "list.h"
 
-list* parse_file(int fd);
+list* parse_file(const char *const pathname);
 void write_err(const char *const message);
 
 #endif
