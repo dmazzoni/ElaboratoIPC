@@ -12,13 +12,15 @@ void init_ipc(int *ipc_id, int nsems, int shm1_size, int shm2_size, int flags) {
 		exit(1);
 	}
 	
+	// Inizializzazione semafori in funzione separata	
+
 	ipc_id[1] = shmget(generate_key(2), shm1_size, flags);
 	if(ipc_id[1] == -1) {
 		close_ipc(ipc_id);
 		exit(1);
 	}
 
-	ipc_id[2] = shmget(generate_key(3), shm1_size, flags);
+	ipc_id[2] = shmget(generate_key(3), shm2_size, flags);
 	if(ipc_id[2] == -1) {
 		close_ipc(ipc_id);
 		exit(1);
