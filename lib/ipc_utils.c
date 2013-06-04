@@ -3,6 +3,9 @@
 #include <sys/sem.h>
 #include <sys/shm.h>
 #include <sys/types.h>
+#include "ipc_utils.h"
+
+static int generate_key(int seed);
 
 void init_ipc(int *ipc_id, int nsems, int shm1_size, int shm2_size, int flags) {
 	int i;
@@ -33,7 +36,7 @@ int close_ipc(int *ipc_id) {
 	
 	if(semctl(ipc_id[0], 0, IPC_RMID, NULL) == -1)  
 		ret = -1;
-	for(i = 1, i < 3; ++i)
+	for(i = 1; i < 3; ++i)
 		if(shmctl(ipc_id[i], IPC_RMID, NULL) == -1)
 			ret = -1;
 	return ret;

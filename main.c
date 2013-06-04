@@ -1,6 +1,5 @@
-#include <fcntl.h>
 #include <stdlib.h>
-#include <unistd.h>
+#include <sys/ipc.h>
 #include "lib/io_utils.h"
 #include "lib/ipc_utils.h"
 #include "lib/list.h"
