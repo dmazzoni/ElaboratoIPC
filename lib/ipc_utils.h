@@ -1,7 +1,9 @@
 #ifndef IPC_UTILS_H
 #define IPC_UTILS_H
 
-void init_ipc(int *ipc_id, int nsems, int shm1_size, int shm2_size, int flags);
-int close_ipc(int *ipc_id);
+void init_ipc(int nsems, int shm1_size, int shm2_size, int flags);
+int close_ipc(void);
+void init_sems(void);
+void* shm_attach(int shm_id);
 
 #endif
