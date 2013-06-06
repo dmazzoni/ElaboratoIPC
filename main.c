@@ -10,7 +10,7 @@ int ipc_id[] = {-1, -1, -1};
 int processors, nsems;
 int *processor_pids;
 
-static int* init_processors();
+static int* init_processors(void);
 
 int main(int argc, char *argv[]) {
 	int *results, *shm_states, *shm_busy_count;
@@ -46,7 +46,7 @@ int main(int argc, char *argv[]) {
 	shm_busy_count = (int *) shm_attach(ipc_id[2]);
 	shm_states = shm_busy_count + 1;
 	
-	processor_pids = init_processors(processors);
+	processor_pids = init_processors();
 	
 	/*
 	k operazioni su n figli
@@ -59,7 +59,7 @@ int main(int argc, char *argv[]) {
 	*/
 }
 
-static int* init_processors() {
+static int* init_processors(void) {
 	int i;
 	int *pids = (int *) malloc(processors * sizeof(int));
 	char buffer[8];
