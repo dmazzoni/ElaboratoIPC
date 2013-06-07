@@ -6,7 +6,7 @@
 #include "io_utils.h"
 #include "ipc_utils.h"
 
-extern int ipc_id[], nsems;
+extern int ipc_id[];
 
 static int generate_key(int seed);
 
@@ -53,7 +53,7 @@ int close_ipc(void) {
 	return ret;
 }
 
-void init_sems(void) {
+void init_sems(int nsems) {
 	int i;
 	union semun args;
 	unsigned short values[nsems];

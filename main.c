@@ -1,23 +1,31 @@
+#include <signal.h>
 #include <stdlib.h>
 #include <sys/ipc.h>
+#include <sys/types.h>
 #include <unistd.h>
 #include "lib/io_utils.h"
 #include "lib/ipc_utils.h"
 #include "lib/list.h"
 #include "lib/operation.h"
 
+typedef void (*sighandler_t)(int);
 int ipc_id[] = {-1, -1, -1};
-int processors, nsems;
+int processors;
 int *processor_pids;
 
 static int* init_processors(void);
+static void stop_execution(int signal);
 
 int main(int argc, char *argv[]) {
 	int *results, *shm_states, *shm_busy_count;
-	int op_count;
+	int op_count, nsems;
 	list *commands;
 	operation *shm_operations;
 	
+	if(signal(SIGUSR1, &stop_execution) == SIG_ERR) {
+		perror("Failed to register signal");
+		exit(1);
+	}
 	if(argc != 2) {
 		write_err("Usage: main.x <pathname>\n");
 		exit(1);
@@ -41,7 +49,7 @@ int main(int argc, char *argv[]) {
 	
 	nsems = (2 * processors) + 2;
 	init_ipc(nsems, processors * sizeof(operation), (processors + 1) * sizeof(int), 0666 | IPC_CREAT | IPC_EXCL);
-	init_sems();
+	init_sems(nsems);
 	shm_operations = (operation *) shm_attach(ipc_id[1]);
 	shm_busy_count = (int *) shm_attach(ipc_id[2]);
 	shm_states = shm_busy_count + 1;
@@ -57,6 +65,8 @@ int main(int argc, char *argv[]) {
 	Locali al padre:
 	- Vettore con spazio per k risultati
 	*/
+	
+	while(1);
 }
 
 static int* init_processors(void) {
@@ -72,17 +82,25 @@ static int* init_processors(void) {
 	for (i = 0; i < processors; ++i)
 		pids[i] = 0;
 	for (i = 0; i < processors; ++i) {
+		
 		pids[i] = fork();
 		if (pids[i] == -1) {
 			perror("Failed to fork processor");
-			/*kill_processors(); //TODO
-			close_ipc();
-			exit(1);*/
+			kill(getpid(), SIGUSR1);
 		}
 		if (pids[i] == 0) {
-			itoa(i, buffer, 10);
-			execl("processor.x", "processor.x", buffer, (char *) NULL);
-			// Stessa gestione sopra
+			if(itoa(i, buffer, 8) != -1)
+				execl("processor.x", "processor.x", buffer, (char *) NULL);
+			kill(getppid(), SIGUSR1);
 		}
 	}
+}
+
+static void stop_execution(int signum) {
+	if(signal(SIGUSR1, &stop_execution) == SIG_ERR)
+		perror("Failed to register signal");
+	if(kill(0, 9) == -1)
+		perror("Failed to kill processors");
+	close_ipc();
+	exit(1);
 }

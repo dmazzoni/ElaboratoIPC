@@ -11,6 +11,10 @@
 static int read_line(int fd, char *const dest);
 static char read_char(int fd);
 
+int itoa(int num, char *const buffer, int buf_len) {
+	return -1;	
+}
+
 list* parse_file(const char *const pathname) {
 	list *result = list_construct();
 	char line[MAX_LENGTH];
