@@ -11,18 +11,18 @@
 typedef void (*sighandler_t)(int);
 int ipc_id[] = {-1, -1, -1};
 int processors;
-int *processor_pids;
 
-static int* init_processors(void);
+static void start_processors(void);
 static void stop_execution(int signal);
 
 int main(int argc, char *argv[]) {
-	int *results, *shm_states, *shm_busy_count;
-	int op_count, nsems;
+	int *results, *shm_states;
+	int i, op_count, proc_id;
+	char *tmp_operator;
 	list *commands;
 	operation *shm_operations;
 	
-	if(signal(SIGUSR1, &stop_execution) == SIG_ERR) {
+	if(signal(SIGTERM, &stop_execution) == SIG_ERR) {
 		perror("Failed to register signal");
 		exit(1);
 	}
@@ -47,60 +47,52 @@ int main(int argc, char *argv[]) {
 		exit(1);	
 	}
 	
-	nsems = (2 * processors) + 2;
-	init_ipc(nsems, processors * sizeof(operation), (processors + 1) * sizeof(int), 0666 | IPC_CREAT | IPC_EXCL);
-	init_sems(nsems);
+	init_ipc(2 * processors + 2, processors * sizeof(operation), processors * sizeof(int), 0666 | IPC_CREAT | IPC_EXCL);
+	init_sems(processors);
 	shm_operations = (operation *) shm_attach(ipc_id[1]);
-	shm_busy_count = (int *) shm_attach(ipc_id[2]);
-	shm_states = shm_busy_count + 1;
+	shm_states = (int *) shm_attach(ipc_id[2]);
 	
-	processor_pids = init_processors();
+	for (i = 0; i < processors; ++i)
+		shm_states[i] = 0;
 	
-	/*
-	k operazioni su n figli
-	- 2n + 1 semafori per interazione sulle operazioni
-	- 1 semaforo per SHM2
-	- SHM 1 --> Spazio per n struct operation
-	- SHM 2 --> Vettore stati figli (+ contatore)
-	Locali al padre:
-	- Vettore con spazio per k risultati
-	*/
-	
-	while(1);
+	start_processors();
+	for (i = 1; list_count(commands) > 0; ++i) {
+		proc_id = atoi(strtok(list_extract(commands), " "));
+		sem_p(2 * processors + 1);
+		if (proc_id-- == 0) {
+			//proc_id = find_proc();
+		}
+		sem_p(proc_id);
+		if (shm_states[proc_id]++ != 0)
+			results[shm_states[proc_id] * -1] = shm_operations[proc_id].num1;
+		shm_operations[proc_id].num1 = atoi(strtok(NULL, " ");
+		tmp_operator = strtok(NULL, " ");
+		shm_operations[proc_id].op = *tmp_operator;
+		shm_operations[proc_id].num2 = atoi(strtok(NULL, " ");
+		shm_states[proc_id] = i;
+		sem_v(processors + proc_id);
+	}
 }
 
-static int* init_processors(void) {
-	int i;
-	int *pids = (int *) malloc(processors * sizeof(int));
+static void start_processors(void) {
+	int i, pid;
 	char buffer[8];
 	
-	if (pids == NULL) {
-		perror("Failed to allocate processor PIDs array");
-		close_ipc();
-		exit(1);
-	}
-	for (i = 0; i < processors; ++i)
-		pids[i] = 0;
 	for (i = 0; i < processors; ++i) {
-		
-		pids[i] = fork();
-		if (pids[i] == -1) {
+		pid = fork();
+		if (pid == -1) {
 			perror("Failed to fork processor");
-			kill(getpid(), SIGUSR1);
+			kill(0, SIGTERM);
 		}
-		if (pids[i] == 0) {
+		if (pid == 0) {
 			if(itoa(i, buffer, 8) != -1)
 				execl("processor.x", "processor.x", buffer, (char *) NULL);
-			kill(getppid(), SIGUSR1);
+			kill(0, SIGTERM);
 		}
 	}
 }
 
 static void stop_execution(int signum) {
-	if(signal(SIGUSR1, &stop_execution) == SIG_ERR)
-		perror("Failed to register signal");
-	if(kill(0, 9) == -1)
-		perror("Failed to kill processors");
 	close_ipc();
 	exit(1);
 }

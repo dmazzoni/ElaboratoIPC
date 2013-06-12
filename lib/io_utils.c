@@ -12,7 +12,28 @@ static int read_line(int fd, char *const dest);
 static char read_char(int fd);
 
 int itoa(int num, char *const buffer, int buf_len) {
-	return -1;	
+	int i = 0, j = 0;
+	char temp;
+	
+	if (num == 0)
+		buffer[i++] = '0';
+	if (num < 0) {
+		buffer[i++] = '-';
+		num *= -1;
+	}
+	while ((i < buf_len - 1) && (num > 0)) {
+		buffer[i++] = num % 10 + '0';
+		num /= 10;
+	}
+	if (num > 0)
+		return -1;
+	buffer[i--] = '\0';
+	while (j < i) {
+		temp = buffer[i];
+		buffer[i--] = buffer[j];
+		buffer[j++] = temp;
+	}
+	return 0;	
 }
 
 list* parse_file(const char *const pathname) {
