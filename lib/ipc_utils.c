@@ -57,8 +57,8 @@ void init_sems(int processors) {
 	unsigned short values[nsems];
 	
 	for (i = 0; i < processors; ++i) {
-		values[i] = 1;
-		values[i + processors] = 0;
+		values[2 * i] = 1;
+		values[(2 * i) + 1] = 0;
 	}
 	values[nsems - 2] = 1;
 	values[nsems - 1] = processors;

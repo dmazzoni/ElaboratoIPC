@@ -1,7 +1,9 @@
 #include <fcntl.h>
-#include <string.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <sys/types.h>
 #include <unistd.h>
 #include "io_utils.h"
 
@@ -64,11 +66,35 @@ list* parse_file(const char *const pathname) {
 	return result;
 }
 
-void write_err(const char *const message) {
-	if (write(2, message, strlen(message) * sizeof(char)) < 0)
-		perror("Write to stderr failed"); 
+void write_results(const char *const pathname, int *results, int length) {
+	int fd, i;
+	char buffer[12];
+	
+	fd = open(pathname, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
+	if(fd == -1) {
+		perror("Failed to open results file");
+		kill(0, SIGTERM);
+	}
+
+	for(i = 0; i < length; ++i) {
+		if(itoa(results[i], buffer, 12) == -1)
+			write_to_fd(2, "Failed to convert result\n");
+		else {
+			write_to_fd(fd, buffer);
+			write_to_fd(fd, "\n");
+		}
+	}
+	
+	if(close(fd) == -1) {
+		perror("Failed to close results file");
+		kill(0, SIGTERM);
+	}
 }
 
+void write_to_fd(int fd, const char *const s) {
+	if (write(fd, s, strlen(s) * sizeof(char)) == -1)
+		perror("Write failed"); 
+}
 static int read_line(int fd, char *const dest) {
 	int i = 0;
 	char c;
@@ -85,7 +111,7 @@ static int read_line(int fd, char *const dest) {
 			dest[i++] = c;
 	}
 	
-	write_err("Buffer overflow\n");
+	write_to_fd(2, "Buffer overflow\n");
 	exit(1);
 }
 
@@ -100,7 +126,7 @@ static char read_char(int fd) {
 		if (chars_left == 0)
 			return EOF;
 		if (chars_left == -1) {
-			write_err("Failed to read from file\n");
+			write_to_fd(2, "Failed to read from file\n");
 			exit(1);
 		}
 	}

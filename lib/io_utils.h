@@ -5,6 +5,7 @@
 
 int itoa(int num, char *const buffer, int buf_len);
 list* parse_file(const char *const pathname);
-void write_err(const char *const message);
+void write_results(const char *const pathname, int *results, int length);
+void write_to_fd(int fd, const char *const s);
 
 #endif
