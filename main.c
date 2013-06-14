@@ -1,26 +1,31 @@
+#include <fcntl.h>
 #include <signal.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/ipc.h>
+#include <sys/stat.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <unistd.h>
-#include "lib/io_utils.h"
-#include "lib/ipc_utils.h"
-#include "lib/list.h"
-#include "lib/operation.h"
+#include "io_utils.h"
+#include "ipc_utils.h"
+#include "list.h"
+#include "operation.h"
 
 typedef void (*sighandler_t)(int);
 int ipc_id[] = {-1, -1, -1};
 int processors;
 
 static int find_proc(int *states);
+static list* parse_file(const char *const pathname);
 static void start_processors(void);
 static void stop_execution(int signal);
 
 int main(int argc, char *argv[]) {
 	int *results, *shm_states;
 	int i, op_count, proc_id;
-	char *tmp_operator;
+	char *tmp_operator, *cmd;
 	list *commands;
 	operation *shm_operations;
 	
@@ -59,7 +64,8 @@ int main(int argc, char *argv[]) {
 	
 	start_processors();
 	for (i = 1; list_count(commands) > 0; ++i) {
-		proc_id = atoi(strtok(list_extract(commands), " "));
+		cmd = list_extract(commands);
+		proc_id = atoi(strtok(cmd, " "));
 		sem_p(2 * processors + 1);
 		if (proc_id-- == 0) {
 			proc_id = find_proc(shm_states);
@@ -73,7 +79,10 @@ int main(int argc, char *argv[]) {
 		shm_operations[proc_id].num2 = atoi(strtok(NULL, " "));
 		shm_states[proc_id] = i;
 		sem_v((2 * proc_id) + 1);
+		free(cmd);
 	}
+	
+	list_destruct(commands);
 	
 	for (i = 0; i < processors; ++i) {
 		sem_p(2 * i);
@@ -99,6 +108,34 @@ static int find_proc(int *states) {
 	while(states[i++] > 0);
 	sem_v(2 * processors);
 	return i - 1;
+}
+
+static list* parse_file(const char *const pathname) {
+	list *result = list_construct();
+	char line[50];
+	int len, fd;
+	
+	if(result == NULL) 
+		exit(1);
+
+	fd = open(pathname, O_RDONLY);
+	if(fd == -1) {
+		perror("Failed to open setup file");
+		exit(1);
+	}
+		
+	do {
+		len = read_line(fd, line, 50);
+		if (len > 0)
+			list_append(result, line);
+	} while(len >= 0);
+	
+	if (close(fd) == -1) {
+		perror("Failed to close setup file");
+		exit(1);
+	}
+
+	return result;
 }
 
 static void start_processors(void) {

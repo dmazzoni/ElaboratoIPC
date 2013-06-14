@@ -1,9 +1,9 @@
 #include <signal.h>
 #include <stdlib.h>
 #include <sys/types.h>
-#include "lib/io_utils.h"
-#include "lib/ipc_utils.h"
-#include "lib/operation.h"
+#include "io_utils.h"
+#include "ipc_utils.h"
+#include "operation.h"
 
 int ipc_id[] = {-1, -1, -1};
 

@@ -1,4 +1,5 @@
 #include <signal.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <sys/ipc.h>
 #include <sys/sem.h>
@@ -19,7 +20,6 @@ union semun {
 };
 
 void init_ipc(int nsems, int shm1_size, int shm2_size, int flags) {
-	int i;
 
 	ipc_id[0] = semget(generate_key(1), nsems, flags);
 	if(ipc_id[0] == -1) {
