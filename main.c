@@ -1,6 +1,12 @@
 /** @file
-	Code for the main process, 
-	which performs simulation setup and execution management.
+	Code for the main process, which performs 
+	simulation setup and execution management.<br>
+	After setting up IPCs and data structures, 
+	the main process does the following:<ul>
+	<li>Executes the required number of processors
+	<li>Dispatches each operation to the appropriate processor,
+	collecting the latest computed result
+	<li>Writes the results on the specified output file</ul>
 */
 
 #include <fcntl.h>
@@ -38,7 +44,7 @@ static void start_processors(void);
 static void stop_execution(int signal);
 
 /**
-	Main function
+	Carries out simulation setup and management.
 	@param argc The number of arguments
 	@param argv The array of arguments
 */
@@ -122,6 +128,11 @@ int main(int argc, char *argv[]) {
 	exit(0);
 }
 
+/**
+	Searches the processor state array for a free processor (state <= 0).
+	@param states The array of processor states
+	@return The ID of a free processor
+*/
 static int find_proc(int *states) {
 	int i = 0;
 
@@ -131,6 +142,13 @@ static int find_proc(int *states) {
 	return i - 1;
 }
 
+/**
+	Reads the specified setup file, 
+	building a list of strings containing the operations to simulate.<br>
+	Assumes that the file has a correct structure.
+	@param pathname The setup file's path
+	@return The list of operations to compute
+*/
 static list* parse_file(const char *const pathname) {
 	list *result = list_construct();
 	char line[50];
@@ -159,6 +177,9 @@ static list* parse_file(const char *const pathname) {
 	return result;
 }
 
+/**
+	Forks and executes the required number of processors.
+*/
 static void start_processors(void) {
 	int i, pid;
 	char proc_id[8], nsems[8];
@@ -181,6 +202,10 @@ static void start_processors(void) {
 	}
 }
 
+/**
+	Handles the @c SIGTERM signal by closing all IPCs.
+	@param signum The received signal
+*/
 static void stop_execution(int signum) {
 	close_ipc();
 	exit(1);
