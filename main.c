@@ -1,3 +1,8 @@
+/** @file
+	Code for the main process, 
+	which performs simulation setup and execution management.
+*/
+
 #include <fcntl.h>
 #include <signal.h>
 #include <stdio.h>
@@ -13,8 +18,18 @@
 #include "list.h"
 #include "operation.h"
 
+/// Typedef for signal handling
 typedef void (*sighandler_t)(int);
+
+/**
+	IDs for the used IPCs
+	<ul><li>Cell 0: semaphore set
+	<li>Cell 1: shared memory for operations
+	<li>Cell 2: shared memory for processor states</ul>
+*/
 int ipc_id[] = {-1, -1, -1};
+
+/** The number of processors */
 int processors;
 
 static int find_proc(int *states);
@@ -22,6 +37,11 @@ static list* parse_file(const char *const pathname);
 static void start_processors(void);
 static void stop_execution(int signal);
 
+/**
+	Main function
+	@param argc The number of arguments
+	@param argv The array of arguments
+*/
 int main(int argc, char *argv[]) {
 	int *results, *shm_states;
 	int i, op_count, proc_id;
@@ -47,7 +67,8 @@ int main(int argc, char *argv[]) {
 	if (op_count == 0) {
 		write_to_fd(2, "No operations provided\n");
 		exit(1);
-	}		
+	}
+	write_with_int(1, "Main - Number of operations: ", op_count);		
 	results = (int *) malloc(op_count * sizeof(int));
 	if (results == NULL) {
 		perror("Failed to allocate results array");

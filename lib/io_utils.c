@@ -59,7 +59,6 @@ int read_line(int fd, char *const dest, const int max_length) {
 
 void write_results(const char *const pathname, int *results, int length) {
 	int fd, i;
-	char buffer[12];
 	
 	fd = open(pathname, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
 	if(fd == -1) {
@@ -68,12 +67,7 @@ void write_results(const char *const pathname, int *results, int length) {
 	}
 
 	for(i = 0; i < length; ++i) {
-		if(itoa(results[i], buffer, 12) == -1)
-			write_to_fd(2, "Failed to convert result\n");
-		else {
-			write_to_fd(fd, buffer);
-			write_to_fd(fd, "\n");
-		}
+		write_with_int(fd, NULL, results[i]);
 	}
 	
 	if(close(fd) == -1) {
@@ -83,8 +77,20 @@ void write_results(const char *const pathname, int *results, int length) {
 }
 
 void write_to_fd(int fd, const char *const s) {
-	if (write(fd, s, strlen(s) * sizeof(char)) == -1)
-		perror("Write failed"); 
+	if (s != NULL)
+		if (write(fd, s, strlen(s) * sizeof(char)) == -1)
+			perror("Write failed"); 
+}
+
+void write_with_int(int fd, const char *const s, int num) {
+	char buffer[12];
+	write_to_fd(fd, s);
+	if (itoa(num, buffer, 12) == -1)
+		write_to_fd(2, "Failed to convert integer\n");
+	else {
+		write_to_fd(fd, buffer);
+		write_to_fd(fd, "\n");
+	}
 }
 
 static char read_char(int fd) {
