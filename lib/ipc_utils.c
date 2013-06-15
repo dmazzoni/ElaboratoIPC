@@ -86,6 +86,11 @@ void* shm_attach(int shm_id) {
 	return ret;
 }
 
+void shm_detach(void *address) {
+	if (shmdt(address) == -1)
+		perror("Failed to detach shared memory segment");
+}
+
 static int generate_key(int seed) {
 	int key = ftok("main.c", seed);
 	if (key == -1) {

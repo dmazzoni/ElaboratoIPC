@@ -7,5 +7,6 @@ void init_sems(int processors);
 void sem_p(int semnum);
 void sem_v(int semnum);
 void* shm_attach(int shm_id);
+void shm_detach(void *address);
 
 #endif

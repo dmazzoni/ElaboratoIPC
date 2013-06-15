@@ -132,6 +132,8 @@ int main(int argc, char *argv[]) {
 	write_to_fd(1, "Main - All processors exited. Writing output file\n");
 	write_results(argv[2], results, op_count);
 	write_to_fd(1, "Main - Closing IPCs\n");
+	shm_detach((void *) shm_operations);
+	shm_detach((void *) shm_states);
 	close_ipc();
 	exit(0);
 }
