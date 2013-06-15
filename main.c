@@ -69,12 +69,13 @@ int main(int argc, char *argv[]) {
 		write_to_fd(2, "Invalid number of processors\n");
 		exit(1);
 	}
+	write_with_int(1, "Number of processors: ", processors);
 	op_count = list_count(commands);
 	if (op_count == 0) {
 		write_to_fd(2, "No operations provided\n");
 		exit(1);
 	}
-	write_with_int(1, "Main - Number of operations: ", op_count);		
+	write_with_int(1, "Number of operations: ", op_count);		
 	results = (int *) malloc(op_count * sizeof(int));
 	if (results == NULL) {
 		perror("Failed to allocate results array");
@@ -82,9 +83,9 @@ int main(int argc, char *argv[]) {
 	}
 	
 	init_ipc(2 * processors + 2, processors * sizeof(operation), processors * sizeof(int), 0666 | IPC_CREAT | IPC_EXCL);
-	write_with_int(1, "Main - Created semaphore set with ID ", ipc_id[0]);
-	write_with_int(1, "Main - Created shm for operations with ID ", ipc_id[1]);
-	write_with_int(1, "Main - Created shm for states with ID ", ipc_id[2]);
+	write_with_int(1, "Created semaphore set with ID ", ipc_id[0]);
+	write_with_int(1, "Created shm for operations with ID ", ipc_id[1]);
+	write_with_int(1, "Created shm for states with ID ", ipc_id[2]);
 	init_sems(processors);
 	shm_operations = (operation *) shm_attach(ipc_id[1]);
 	shm_states = (int *) shm_attach(ipc_id[2]);
@@ -95,33 +96,41 @@ int main(int argc, char *argv[]) {
 	start_processors();
 	for (i = 1; list_count(commands) > 0; ++i) {
 		cmd = list_extract(commands);
+		write_to_fd(1, "\nCurrent command: ");
+		write_to_fd(1, cmd);
+		write_to_fd(1, "\n");
 		proc_id = atoi(strtok(cmd, " "));
 		sem_p(2 * processors + 1);
 		if (proc_id-- == 0) {
 			proc_id = find_proc(shm_states);
 		}
-		write_with_int(1, "Main - Waiting for processor #", proc_id + 1);
+		write_with_int(1, "Waiting for processor #", proc_id + 1);
 		sem_p(2 * proc_id);
-		if (shm_states[proc_id]++ != 0)
+		if (shm_states[proc_id]++ != 0) {
 			results[shm_states[proc_id] * -1] = shm_operations[proc_id].num1;
+			write_with_int(1, "Previous result: ", shm_operations[proc_id].num1);
+		}
 		shm_operations[proc_id].num1 = atoi(strtok(NULL, " "));
 		tmp_operator = strtok(NULL, " ");
 		shm_operations[proc_id].op = *tmp_operator;
 		shm_operations[proc_id].num2 = atoi(strtok(NULL, " "));
 		shm_states[proc_id] = i;
-		write_with_int(1, "Main - Unblocking processor #", proc_id + 1);
+		write_to_fd(1, "Operation delivered. Unblocking processor\n");
 		sem_v((2 * proc_id) + 1);
 		free(cmd);
 	}
 	
 	list_destruct(commands);
 	
+	write_to_fd(1, "\n");
 	for (i = 0; i < processors; ++i) {
 		sem_p(2 * i);
-		if (shm_states[i]++ != 0)
+		write_with_int(1, "Passing termination command to processor #", i + 1);
+		if (shm_states[i]++ != 0) {
 			results[shm_states[i] * -1] = shm_operations[i].num1;
+			write_with_int(1, "\tLast result: ", shm_operations[i].num1);
+		}
 		shm_operations[i].op = 'K';
-		write_with_int(1, "Main - Passed termination command to processor #", i + 1);
 		sem_v((2 * i) + 1);
 	}
 
@@ -129,9 +138,9 @@ int main(int argc, char *argv[]) {
 		if(wait(NULL) == -1)
 			perror("Wait failed");
 			
-	write_to_fd(1, "Main - All processors exited. Writing output file\n");
+	write_to_fd(1, "\nAll processors exited. Writing output file\n");
 	write_results(argv[2], results, op_count);
-	write_to_fd(1, "Main - Closing IPCs\n");
+	write_to_fd(1, "Closing IPCs\n");
 	shm_detach((void *) shm_operations);
 	shm_detach((void *) shm_states);
 	close_ipc();
@@ -146,11 +155,11 @@ int main(int argc, char *argv[]) {
 static int find_proc(int *states) {
 	int i = 0;
 
-	write_to_fd(1, "Main - Looking for a free processor\n");
+	write_to_fd(1, "Looking for a free processor\n");
 	sem_p(2 * processors);
 	while(states[i++] > 0);
 	sem_v(2 * processors);
-	write_with_int(1, "Main - Found processor #", i);
+	write_with_int(1, "Found processor #", i);
 	return i - 1;
 }
 
@@ -219,7 +228,7 @@ static void start_processors(void) {
 	@param signum The received signal
 */
 static void stop_execution(int signum) {
-	write_to_fd(2, "Main - SIGTERM received. Closing IPCs\n");
+	write_to_fd(2, "SIGTERM received. Closing IPCs\n");
 	close_ipc();
 	exit(1);
 }
