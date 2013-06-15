@@ -1,3 +1,11 @@
+/** @file
+	The input/output utilities used during execution:<ul>
+	<li>Conversion of an integer into a string
+	<li>Buffered read from a file descriptor
+	<li>Write on a file descriptor, with possibility to 
+	print all the results computed, or an integer value</ul>	
+*/
+
 #include <fcntl.h>
 #include <signal.h>
 #include <stdio.h>
@@ -7,10 +15,19 @@
 #include <unistd.h>
 #include "io_utils.h"
 
+/// Constant buffer size
 #define BUF_SIZE 512
 
 static char read_char(int fd);
 
+/**
+	Converts an integer value into a string, which is stored
+	into buffer.
+	@param num The integer value to convert
+	@param buffer The array where to save the converted number
+	@param buf_len The maximum buffer length
+	@return 0 in case of success, -1 if an error occurs
+*/
 int itoa(int num, char *const buffer, int buf_len) {
 	int i = 0, j = 0;
 	char temp;
@@ -37,6 +54,14 @@ int itoa(int num, char *const buffer, int buf_len) {
 	return 0;	
 }
 
+/**
+	Reads a line from the specified file descriptor and
+	stores it in the passed array.
+	@param fd The file descriptor
+	@param dest The array where to save the line read
+	@param max_length The maximum buffer length
+	@return The line length in case of success, -1 if an error occurs
+*/
 int read_line(int fd, char *const dest, const int max_length) {
 	int i = 0;
 	char c;
@@ -57,6 +82,13 @@ int read_line(int fd, char *const dest, const int max_length) {
 	exit(1);
 }
 
+/**
+	Writes the results array on the specified output file.<br> 
+	If the file does not exist, it's created.
+	@param pathname The output file's path
+	@param results The results array
+	@param length The results array length
+*/
 void write_results(const char *const pathname, int *results, int length) {
 	int fd, i;
 	
@@ -76,12 +108,25 @@ void write_results(const char *const pathname, int *results, int length) {
 	}
 }
 
+/**
+	Writes a string on the specified file descriptor, wrapping
+	the write system call.
+	@param fd The file descriptor
+	@param s The string to write
+*/
 void write_to_fd(int fd, const char *const s) {
 	if (s != NULL)
 		if (write(fd, s, strlen(s) * sizeof(char)) == -1)
 			perror("Write failed"); 
 }
 
+/**
+	Writes on the specified file descriptor a string followed 
+	by an integer.
+	@param fd The file descriptor
+	@param s The string to write
+	@param num The integer to write
+*/
 void write_with_int(int fd, const char *const s, int num) {
 	char *message;
 	char num_buffer[12];
