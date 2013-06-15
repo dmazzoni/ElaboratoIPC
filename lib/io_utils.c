@@ -67,7 +67,7 @@ void write_results(const char *const pathname, int *results, int length) {
 	}
 
 	for(i = 0; i < length; ++i) {
-		write_with_int(fd, NULL, results[i]);
+		write_with_int(fd, "", results[i]);
 	}
 	
 	if(close(fd) == -1) {
@@ -83,14 +83,21 @@ void write_to_fd(int fd, const char *const s) {
 }
 
 void write_with_int(int fd, const char *const s, int num) {
-	char buffer[12];
-	write_to_fd(fd, s);
-	if (itoa(num, buffer, 12) == -1)
+	char *message;
+	char num_buffer[12];
+	int message_len;
+	if (itoa(num, num_buffer, 12) == -1)
 		write_to_fd(2, "Failed to convert integer\n");
-	else {
-		write_to_fd(fd, buffer);
-		write_to_fd(fd, "\n");
-	}
+	message_len = strlen(s) + strlen(num_buffer) + 2;
+	message = (char *) malloc(message_len * sizeof(char));
+	if (message == NULL)
+		write_to_fd(2, "Failed to allocate message string\n");
+	strcpy(message, s);
+	strcat(message, num_buffer);
+	message[message_len - 2] = '\n';
+	message[message_len - 1] = '\0';
+	write_to_fd(fd, message);
+	free(message);
 }
 
 static char read_char(int fd) {
