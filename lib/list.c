@@ -8,7 +8,6 @@
 #include <string.h>
 #include "list.h"
 
-
 /** 
 	@brief Represents a single list node.
 	@see list
@@ -122,7 +121,6 @@ int list_count(const list *const l) {
 	<br>The @c next field is initialized to @c NULL.
 	@param s The string to copy into the node
 	@return The created list node on success, @c NULL otherwise.
-	@memberof list_node
 */
 static list_node* node_construct(char *const s) {
 	int size;
@@ -147,7 +145,6 @@ static list_node* node_construct(char *const s) {
 	nodes and their content.
 	@param n The starting node
 	@see list_destruct
-	@memberof list
 */
 static void list_destruct_recursive(list_node *n) {
 	if (n) {
