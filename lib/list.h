@@ -1,6 +1,12 @@
+/** @file
+	Public interface for the linked list implementation.
+	@see list
+*/
+
 #ifndef LIST_H
 #define LIST_H
 
+/// A FIFO linked list of strings.
 struct list;
 typedef struct list list;
 
