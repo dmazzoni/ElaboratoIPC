@@ -92,7 +92,7 @@ int read_line(int fd, char *const dest, const int max_length) {
 void write_results(const char *const pathname, int *results, int length) {
 	int fd, i;
 	
-	fd = open(pathname, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
+	fd = open(pathname, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
 	if(fd == -1) {
 		perror("Failed to open results file");
 		kill(0, SIGTERM);
