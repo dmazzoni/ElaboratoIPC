@@ -65,7 +65,7 @@ int main(int argc, char *argv[]) {
 	}
 	commands = parse_file(argv[1]);
 	processors = atoi(list_extract(commands));
-	if (processors == 0) {
+	if (processors <= 0) {
 		write_to_fd(2, "Invalid number of processors\n");
 		exit(1);
 	}
