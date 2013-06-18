@@ -11,7 +11,6 @@
 
 #include <fcntl.h>
 #include <signal.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/ipc.h>
@@ -56,7 +55,7 @@ int main(int argc, char *argv[]) {
 	operation *shm_operations;
 	
 	if(signal(SIGTERM, &stop_execution) == SIG_ERR) {
-		perror("Failed to register signal");
+		write_to_fd(2, "Failed to register signal");
 		exit(1);
 	}
 	if(argc != 3) {
@@ -78,7 +77,7 @@ int main(int argc, char *argv[]) {
 	write_with_int(1, "Number of operations: ", op_count);		
 	results = (int *) malloc(op_count * sizeof(int));
 	if (results == NULL) {
-		perror("Failed to allocate results array");
+		write_to_fd(2, "Failed to allocate results array");
 		exit(1);	
 	}
 	
@@ -136,7 +135,7 @@ int main(int argc, char *argv[]) {
 
 	for (i = 0; i < processors; ++i) 
 		if(wait(NULL) == -1)
-			perror("Wait failed");
+			write_to_fd(2, "Wait failed");
 			
 	write_to_fd(1, "\nAll processors exited. Writing output file\n");
 	write_results(argv[2], results, op_count);
@@ -180,7 +179,7 @@ static list* parse_file(const char *const pathname) {
 
 	fd = open(pathname, O_RDONLY);
 	if(fd == -1) {
-		perror("Failed to open setup file");
+		write_to_fd(2, "Failed to open setup file");
 		exit(1);
 	}
 		
@@ -191,7 +190,7 @@ static list* parse_file(const char *const pathname) {
 	} while(len >= 0);
 	
 	if (close(fd) == -1) {
-		perror("Failed to close setup file");
+		write_to_fd(2, "Failed to close setup file");
 		exit(1);
 	}
 
@@ -212,7 +211,7 @@ static void start_processors(void) {
 	for (i = 0; i < processors; ++i) {
 		pid = fork();
 		if (pid == -1) {
-			perror("Failed to fork processor");
+			write_to_fd(2, "Failed to fork processor");
 			kill(0, SIGTERM);
 		}
 		if (pid == 0) {

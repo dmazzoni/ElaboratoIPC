@@ -94,7 +94,7 @@ void write_results(const char *const pathname, int *results, int length) {
 	
 	fd = open(pathname, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
 	if(fd == -1) {
-		perror("Failed to open results file");
+		write_to_fd(2, "Failed to open results file");
 		kill(0, SIGTERM);
 	}
 
@@ -103,7 +103,7 @@ void write_results(const char *const pathname, int *results, int length) {
 	}
 	
 	if(close(fd) == -1) {
-		perror("Failed to close results file");
+		write_to_fd(2, "Failed to close results file");
 		kill(0, SIGTERM);
 	}
 }
@@ -117,7 +117,7 @@ void write_results(const char *const pathname, int *results, int length) {
 void write_to_fd(int fd, const char *const s) {
 	if (s != NULL)
 		if (write(fd, s, strlen(s) * sizeof(char)) == -1)
-			perror("Write failed"); 
+			write_to_fd(2, "Write failed"); 
 }
 
 /**
