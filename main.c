@@ -96,8 +96,6 @@ int main(int argc, char *argv[]) {
 	for (i = 1; list_count(commands) > 0; ++i) {
 		cmd = list_extract(commands);
 		write_with_int(1, "\nOperation #", i);
-		//write_to_fd(1, cmd);
-		//write_to_fd(1, "\n");
 		proc_id = atoi(strtok(cmd, " "));
 		sem_p(2 * processors + 1);
 		if (proc_id-- == 0) {
