@@ -39,6 +39,7 @@ int main(int argc, char *argv[]) {
 	operation *shm_operations;
 		
 	proc_id = atoi(argv[1]);
+	write_with_int(1, "\tProcessor - Started as #", proc_id + 1);
 	nsems = atoi(argv[2]);
 	init_ipc(0, 0, 0, 0666);
 	shm_operations = (operation *) shm_attach(ipc_id[1]);
@@ -48,16 +49,19 @@ int main(int argc, char *argv[]) {
 		sem_p((2 * proc_id) + 1);
 		if (shm_operations[proc_id].op == 'K')
 			break;
+		write_with_int(1, "\tOperation received - Processor ", proc_id + 1);
 		compute(shm_operations + proc_id);
 		sem_p(nsems - 2);
 		shm_states[proc_id] *= -1;
 		sem_v(nsems - 2);
+		write_with_int(1, "\tResult computed. Unblocking main - Processor ", proc_id + 1);
 		sem_v(2 * proc_id);
 		sem_v(nsems - 1);	
 	}
 	
 	shm_detach((void *) shm_operations);
 	shm_detach((void *) shm_states);
+	write_with_int(1, "\tExiting - Processor ", proc_id + 1);
 	exit(0);
 }
 
@@ -74,10 +78,10 @@ static void compute(operation *oper) {
 		case '/': if(oper->num2 != 0)
 				oper->num1 = oper->num1 / oper->num2; 
 			  else {
-				write_to_fd(2, "Division by 0\n"); 
+				write_to_fd(2, "\tDivision by 0\n"); 
 				kill(0, SIGTERM);
 			  }; break;
-		default: write_to_fd(2, "Invalid operator\n"); 
+		default: write_to_fd(2, "\tInvalid operator\n"); 
 			 kill(0, SIGTERM); 
 	}
 }

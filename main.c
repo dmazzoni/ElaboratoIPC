@@ -95,16 +95,17 @@ int main(int argc, char *argv[]) {
 	start_processors();
 	for (i = 1; list_count(commands) > 0; ++i) {
 		cmd = list_extract(commands);
-		write_to_fd(1, "\nCurrent command: ");
-		write_to_fd(1, cmd);
-		write_to_fd(1, "\n");
+		write_with_int(1, "\nOperation #", i);
+		//write_to_fd(1, cmd);
+		//write_to_fd(1, "\n");
 		proc_id = atoi(strtok(cmd, " "));
 		sem_p(2 * processors + 1);
 		if (proc_id-- == 0) {
 			proc_id = find_proc(shm_states);
 		}
-		write_with_int(1, "Waiting for processor #", proc_id + 1);
+		write_with_int(1, "Waiting for processor ", proc_id + 1);
 		sem_p(2 * proc_id);
+		write_with_int(1, "Delivering operation to processor ", proc_id + 1);
 		if (shm_states[proc_id]++ != 0) {
 			results[shm_states[proc_id] * -1] = shm_operations[proc_id].num1;
 			write_with_int(1, "Previous result: ", shm_operations[proc_id].num1);
@@ -114,7 +115,7 @@ int main(int argc, char *argv[]) {
 		shm_operations[proc_id].op = *tmp_operator;
 		shm_operations[proc_id].num2 = atoi(strtok(NULL, " "));
 		shm_states[proc_id] = i;
-		write_to_fd(1, "Operation delivered. Unblocking processor\n");
+		write_with_int(1, "Operation delivered. Unblocking processor ", proc_id + 1);
 		sem_v((2 * proc_id) + 1);
 		free(cmd);
 	}
@@ -124,10 +125,10 @@ int main(int argc, char *argv[]) {
 	write_to_fd(1, "\n");
 	for (i = 0; i < processors; ++i) {
 		sem_p(2 * i);
-		write_with_int(1, "Passing termination command to processor #", i + 1);
+		write_with_int(1, "\nPassing termination command to processor #", i + 1);
 		if (shm_states[i]++ != 0) {
 			results[shm_states[i] * -1] = shm_operations[i].num1;
-			write_with_int(1, "\tLast result: ", shm_operations[i].num1);
+			write_with_int(1, "Last result: ", shm_operations[i].num1);
 		}
 		shm_operations[i].op = 'K';
 		sem_v((2 * i) + 1);
@@ -154,11 +155,11 @@ int main(int argc, char *argv[]) {
 static int find_proc(int *states) {
 	int i = 0;
 
-	write_to_fd(1, "Looking for a free processor\n");
 	sem_p(2 * processors);
+	write_to_fd(1, "Looking for a free processor\n");
 	while(states[i++] > 0);
 	sem_v(2 * processors);
-	write_with_int(1, "Found processor #", i);
+	write_with_int(1, "Found processor ", i);
 	return i - 1;
 }
 
