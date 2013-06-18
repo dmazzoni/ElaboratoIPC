@@ -145,6 +145,14 @@ void write_with_int(int fd, const char *const s, int num) {
 	free(message);
 }
 
+/**
+	Reads a character from the specified file descriptor, 
+	wrapping the read system call. 
+	The use of static variables allows to select the 
+	correct character from the buffer.
+	@param fd The file descriptor
+	@return The char read
+*/
 static char read_char(int fd) {
 	static char buffer[BUF_SIZE];
 	static int chars_left = 0;
