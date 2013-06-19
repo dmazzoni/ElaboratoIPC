@@ -14,6 +14,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include "io_utils.h"
+#include "ipc_utils.h"
 
 /// Constant buffer size
 #define BUF_SIZE 512
@@ -94,8 +95,8 @@ void write_results(const char *const pathname, int *results, int length) {
 	
 	fd = open(pathname, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
 	if(fd == -1) {
-		write_to_fd(2, "Failed to open results file");
-		kill(0, SIGTERM);
+		write_to_fd(2, "Failed to open results file\n");
+		kill_group(SIGTERM);
 	}
 
 	for(i = 0; i < length; ++i) {
@@ -103,8 +104,8 @@ void write_results(const char *const pathname, int *results, int length) {
 	}
 	
 	if(close(fd) == -1) {
-		write_to_fd(2, "Failed to close results file");
-		kill(0, SIGTERM);
+		write_to_fd(2, "Failed to close results file\n");
+		kill_group(SIGTERM);
 	}
 }
 
@@ -117,7 +118,7 @@ void write_results(const char *const pathname, int *results, int length) {
 void write_to_fd(int fd, const char *const s) {
 	if (s != NULL)
 		if (write(fd, s, strlen(s) * sizeof(char)) == -1)
-			write_to_fd(2, "Write failed"); 
+			write_to_fd(2, "Write failed\n"); 
 }
 
 /**

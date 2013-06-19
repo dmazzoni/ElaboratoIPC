@@ -8,5 +8,6 @@ void sem_p(int semnum);
 void sem_v(int semnum);
 void* shm_attach(int shm_id);
 void shm_detach(void *address);
+void kill_group(int signum);
 
 #endif

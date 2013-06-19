@@ -37,20 +37,20 @@ void init_ipc(int nsems, int shm1_size, int shm2_size, int flags) {
 
 	ipc_id[0] = semget(generate_key(1), nsems, flags);
 	if(ipc_id[0] == -1) {
-		write_to_fd(2, "Failed to create semaphore set");
-		kill(0, SIGTERM);
+		write_to_fd(2, "Failed to create semaphore set\n");
+		kill_group(SIGTERM);
 	}
 
 	ipc_id[1] = shmget(generate_key(2), shm1_size, flags);
 	if(ipc_id[1] == -1) {
-		write_to_fd(2, "Failed to create shared memory for operations");
-		kill(0, SIGTERM);
+		write_to_fd(2, "Failed to create shared memory for operations\n");
+		kill_group(SIGTERM);
 	}
 
 	ipc_id[2] = shmget(generate_key(3), shm2_size, flags);
 	if(ipc_id[2] == -1) {
-		write_to_fd(2, "Failed to create shared memory for processor states");
-		kill(0, SIGTERM);
+		write_to_fd(2, "Failed to create shared memory for processor states\n");
+		kill_group(SIGTERM);
 	}
 }
 
@@ -95,8 +95,8 @@ void init_sems(int processors) {
 	values[nsems - 1] = processors;
 	args.array = values;
 	if (semctl(ipc_id[0], -1, SETALL, args) == -1) {
-		write_to_fd(2, "Failed to initialize semaphore set");
-		kill(0, SIGTERM);
+		write_to_fd(2, "Failed to initialize semaphore set\n");
+		kill_group(SIGTERM);
 	}
 }
 
@@ -126,8 +126,8 @@ void sem_v(int semnum) {
 void* shm_attach(int shm_id) {
 	void *ret = shmat(shm_id, NULL, 0);
 	if (ret == (void *) -1) {
-		write_to_fd(2, "Failed to attach shared memory segment");
-		kill(0, SIGTERM);
+		write_to_fd(2, "Failed to attach shared memory segment\n");
+		kill_group(SIGTERM);
 	}
 	return ret;
 }
@@ -138,7 +138,17 @@ void* shm_attach(int shm_id) {
 */
 void shm_detach(void *address) {
 	if (shmdt(address) == -1)
-		write_to_fd(2, "Failed to detach shared memory segment");
+		write_to_fd(2, "Failed to detach shared memory segment\n");
+}
+
+/**
+	Sends the specified signal to the group of the calling process.<br>
+	Wraps the @c kill() system call.
+	@param signum The signal to send
+*/
+void kill_group(int signum) {
+	if (kill(0, signum) == -1)
+		write_with_int(2, "Failed to send signal ", signum);
 }
 
 /**
@@ -148,7 +158,7 @@ void shm_detach(void *address) {
 static int generate_key(int seed) {
 	int key = ftok("main.c", seed);
 	if (key == -1) {
-		write_to_fd(2, "ftok failed");
+		write_to_fd(2, "ftok failed\n");
 		exit(1);
 	}
 	return key;
@@ -167,7 +177,7 @@ static void sem_operation(int semnum, short op) {
 	sops.sem_op = op;
 	sops.sem_flg = 0;
 	if (semop(ipc_id[0], &sops, 1) == -1) {
-		write_to_fd(2, "Failed semaphore operation");
-		kill(0, SIGTERM);
+		write_to_fd(2, "Failed semaphore operation\n");
+		kill_group(SIGTERM);
 	}
 }

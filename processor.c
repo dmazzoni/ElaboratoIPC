@@ -79,9 +79,9 @@ static void compute(operation *oper) {
 				oper->num1 = oper->num1 / oper->num2; 
 			  else {
 				write_to_fd(2, "\tDivision by 0\n"); 
-				kill(0, SIGTERM);
+				kill_group(SIGTERM);
 			  }; break;
 		default: write_to_fd(2, "\tInvalid operator\n"); 
-			 kill(0, SIGTERM); 
+			 kill_group(SIGTERM); 
 	}
 }

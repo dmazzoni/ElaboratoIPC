@@ -55,7 +55,7 @@ int main(int argc, char *argv[]) {
 	operation *shm_operations;
 	
 	if(signal(SIGTERM, &stop_execution) == SIG_ERR) {
-		write_to_fd(2, "Failed to register signal");
+		write_to_fd(2, "Failed to register signal\n");
 		exit(1);
 	}
 	if(argc != 3) {
@@ -77,7 +77,7 @@ int main(int argc, char *argv[]) {
 	write_with_int(1, "Number of operations: ", op_count);		
 	results = (int *) malloc(op_count * sizeof(int));
 	if (results == NULL) {
-		write_to_fd(2, "Failed to allocate results array");
+		write_to_fd(2, "Failed to allocate results array\n");
 		exit(1);	
 	}
 	
@@ -120,7 +120,6 @@ int main(int argc, char *argv[]) {
 	
 	list_destruct(commands);
 	
-	write_to_fd(1, "\n");
 	for (i = 0; i < processors; ++i) {
 		sem_p(2 * i);
 		write_with_int(1, "\nPassing termination command to processor #", i + 1);
@@ -134,7 +133,7 @@ int main(int argc, char *argv[]) {
 
 	for (i = 0; i < processors; ++i) 
 		if(wait(NULL) == -1)
-			write_to_fd(2, "Wait failed");
+			write_to_fd(2, "Wait failed\n");
 			
 	write_to_fd(1, "\nAll processors exited. Writing output file\n");
 	write_results(argv[2], results, op_count);
@@ -178,7 +177,7 @@ static list* parse_file(const char *const pathname) {
 
 	fd = open(pathname, O_RDONLY);
 	if(fd == -1) {
-		write_to_fd(2, "Failed to open setup file");
+		write_to_fd(2, "Failed to open setup file\n");
 		exit(1);
 	}
 		
@@ -189,7 +188,7 @@ static list* parse_file(const char *const pathname) {
 	} while(len >= 0);
 	
 	if (close(fd) == -1) {
-		write_to_fd(2, "Failed to close setup file");
+		write_to_fd(2, "Failed to close setup file\n");
 		exit(1);
 	}
 
@@ -205,18 +204,18 @@ static void start_processors(void) {
 
 	if(itoa((2 * processors) + 2, nsems, 8) == -1) {
 		write_to_fd(2, "Failed to convert number of semaphores\n");	
-		kill(0, SIGTERM);
+		kill_group(SIGTERM);
 	}
 	for (i = 0; i < processors; ++i) {
 		pid = fork();
 		if (pid == -1) {
-			write_to_fd(2, "Failed to fork processor");
-			kill(0, SIGTERM);
+			write_to_fd(2, "Failed to fork processor\n");
+			kill_group(SIGTERM);
 		}
 		if (pid == 0) {
 			if(itoa(i, proc_id, 8) != -1)
 				execl("processor.x", "processor.x", proc_id, nsems, (char *) NULL);
-			kill(0, SIGTERM);
+			kill_group(SIGTERM);
 		}
 	}
 }
