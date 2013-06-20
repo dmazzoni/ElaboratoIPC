@@ -146,7 +146,11 @@ int main(int argc, char *argv[]) {
 
 /**
 	Searches the processor state array for a free processor (state <= 0).
-	@param states The array of processor states
+	@param states The array of processor states. Each cell <i>i</i> contains a 
+	key such that:<br>
+	<ul><li>If <b>key < 0</b>, processor has completed the |key|-th operation
+	<li>If <b>key == 0</b>, processor has not received an operation yet
+	<li>If <b>key > 0</b>, processor is currently working on the key-th operation</ul>
 	@return The ID of a free processor
 */
 static int find_proc(int *states) {
