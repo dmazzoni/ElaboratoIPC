@@ -3,14 +3,13 @@ LD:= gcc
 CFLAGS:= -c -Wall -Ilib
 
 PROC_LIBS:= lib/io_utils.c lib/ipc_utils.c
-MAIN_LIBS:= $(PROC_LIBS)
-MAIN_LIBS+= lib/list.c
+MAIN_LIBS:= $(PROC_LIBS) lib/list.c
 
 PROC_OBJS:= $(PROC_LIBS:.c=.o)
 MAIN_OBJS:= $(MAIN_LIBS:.c=.o)
 
-PROC_HEADERS:= $(PROC_LIBS:.c=.h)
-MAIN_HEADERS:= $(MAIN_LIBS:.c=.h)
+PROC_HEADERS:= $(PROC_LIBS:.c=.h) lib/operation.h
+MAIN_HEADERS:= $(MAIN_LIBS:.c=.h) lib/operation.h
 
 all: main.x processor.x
 
@@ -30,7 +29,11 @@ processor.o: processor.c $(PROC_HEADERS)
 	@echo $@
 	@$(CC) $(CFLAGS) $< -o $@
 	
-lib/%.o: lib/%.c lib/%.h
+lib/i%.o: lib/i%.c lib/i*.h
+	@echo $@
+	@$(CC) $(CFLAGS) $< -o $@
+	
+lib/list.o: lib/list.c lib/list.h
 	@echo $@
 	@$(CC) $(CFLAGS) $< -o $@
 

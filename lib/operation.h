@@ -6,7 +6,6 @@
 #ifndef OPERATION_H
 #define OPERATION_H
 
-
 /// Used by the main process to send operations to processors
 typedef struct operation {
 	/// The first operand, also used to store the result
