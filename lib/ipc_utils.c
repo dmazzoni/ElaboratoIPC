@@ -57,17 +57,16 @@ void init_ipc(int nsems, int shm1_size, int shm2_size, int flags) {
 /**
 	Closes the semaphore set and the shared memory segments.<br>
 	Wraps the @c semctl() and @c shmctl() system calls, checking their exit code.
-	@return 0 if all IPCs are successfully closed, -1 otherwise.
 */
-int close_ipc(void) {
-	int i, ret = 0;
+void close_ipc(void) {
+	int i;
 	
 	if(semctl(ipc_id[0], 0, IPC_RMID, NULL) == -1)  
-		ret = -1;
+		write_with_int(2, "Failed to close semaphore set with ID ", ipc_id[0]);
 	for(i = 1; i < 3; ++i)
 		if(shmctl(ipc_id[i], IPC_RMID, NULL) == -1)
-			ret = -1;
-	return ret;
+			write_with_int(2, "Failed to close shared memory with ID ", ipc_id[i]);
+	return;
 }
 
 /**
