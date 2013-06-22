@@ -23,7 +23,7 @@ static char read_char(int fd);
 
 /**
 	Converts an integer value into a string, which is stored
-	into buffer.
+	into @c buffer.
 	@param num The integer value to convert
 	@param buffer The array where to save the converted number
 	@param buf_len The maximum buffer length
@@ -111,7 +111,7 @@ void write_results(const char *const pathname, int *results, int length) {
 
 /**
 	Writes a string on the specified file descriptor, wrapping
-	the write system call.
+	the @c write() system call.
 	@param fd The file descriptor
 	@param s The string to write
 */
@@ -148,7 +148,7 @@ void write_with_int(int fd, const char *const s, int num) {
 
 /**
 	Reads a character from the specified file descriptor, 
-	wrapping the read system call. 
+	wrapping the @c read() system call. 
 	The use of static variables allows to select the 
 	correct character from the buffer.
 	@param fd The file descriptor
