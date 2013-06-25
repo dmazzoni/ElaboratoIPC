@@ -40,7 +40,7 @@ int processors;
 static int find_proc(int *states);
 static list* parse_file(const char *const pathname);
 static void start_processors(void);
-static void stop_execution(int signal);
+static void stop_execution(int signum);
 
 /**
 	Carries out simulation setup and management.
