@@ -104,8 +104,8 @@ int main(int argc, char *argv[]) {
 		write_with_int(1, "Waiting for processor ", proc_id + 1);
 		sem_p(2 * proc_id);
 		write_with_int(1, "Delivering operation to processor ", proc_id + 1);
-		if (shm_states[proc_id]++ != 0) {
-			results[shm_states[proc_id] * -1] = shm_operations[proc_id].num1;
+		if (shm_states[proc_id] != 0) {
+			results[(shm_states[proc_id] + 1) * -1] = shm_operations[proc_id].num1;
 			write_with_int(1, "Previous result: ", shm_operations[proc_id].num1);
 		}
 		shm_operations[proc_id].num1 = atoi(strtok(NULL, " "));
