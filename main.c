@@ -123,8 +123,8 @@ int main(int argc, char *argv[]) {
 	for (i = 0; i < processors; ++i) {
 		sem_p(2 * i);
 		write_with_int(1, "\nPassing termination command to processor #", i + 1);
-		if (shm_states[i]++ != 0) {
-			results[shm_states[i] * -1] = shm_operations[i].num1;
+		if (shm_states[i] != 0) {
+			results[(shm_states[i] + 1) * -1] = shm_operations[i].num1;
 			write_with_int(1, "Last result: ", shm_operations[i].num1);
 		}
 		shm_operations[i].op = 'K';
